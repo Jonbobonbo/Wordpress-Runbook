@@ -16,6 +16,51 @@ Now you need to start apache and enable it to boot when the system starts:
 user@server:/$ sudo systemctl start apache2
 user@server:/$ sudo systemctl enable apache2
 ```
+### Let's configure Apache to be compatible with your website.
+First we need to configure Apache to point to your domain:
+```
+user@server:/$ sudo nano /etc/hosts
+```
+And now you will need to add the name of your domain with your local host ip to the list:
+```
+127.0.0.1       localhost
+127.0.0.1       ubuntu
+127.0.0.1       yourdomain.com
+```
+Now that your domain has been added to Apache, it needs a file for that site's configuration. You can copy the default conf file for the correct format like this:
+```
+user@server:/$ sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/yourdomain.com.conf
+```
+Now open your new conf file with the nano text editor and add the information for where you want your web root directory after **DocumentRoot** and your domain after **ServerName**:
+```
+<VirtualHost *:80>
+    ServerName yourdomain.com
+    DocumentRoot /var/www/html/
+</VirtualHost>
+```
+Now disable the default configuration and enable your new site's configuration file and restart Apache:
+```
+user@server:/$ sudo a2dissite 000-default.conf
+user@server:/$ sudo a2ensite yourdomain.com.conf
+user@server:/$ sudo systemctl reload apache2
+```
+If you changed the default root directory in your conf file you will need to update the main Apache configuration file with the new root directory as well:
+```
+user@server:/$ sudo nano /etc/apache2/apache2.conf
+```
+And you will want to add a new Directory entry to the list of existing ones with the file path of your new root directory:
+```
+<Directory /new/file/path>
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Require all granted
+</Directory>
+```
+Save and exit nano.
+Now restart Apache to update your changes:
+```
+user@server:/$ sudo systemctl reload apache2
+```
 If you want to avoid the need for sudo in front of all your commands or you want to ssh with an online text editor you can give yourself root permissions with this command: 
 ```
 user@server:/$ chown -R user var/www
